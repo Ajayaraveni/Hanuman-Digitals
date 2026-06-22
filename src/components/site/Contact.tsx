@@ -1,14 +1,63 @@
 import { useState } from "react";
 import { Reveal, SectionLabel } from "./Reveal";
-import { MapPin, Phone, Mail, MessageCircle, ArrowRight, Instagram, Youtube } from "lucide-react";
+import {
+  MapPin, Phone, Mail, MessageCircle, ArrowRight, Instagram, Youtube,
+} from "lucide-react";
+
+const SERVICES = [
+  "Wedding Photography",
+  "Wedding Cinematography",
+  "Pre-Wedding Shoot",
+  "Portrait Photography",
+  "Album Design",
+  "Maternity Shoot",
+  "Baby Shoot",
+  "Birthday Event",
+  "Corporate Event",
+];
+
+const SERVICE_CITIES = [
+  { city: "Hyderabad", note: "Studio · Chikkadapally" },
+  { city: "Adilabad", note: "Studio · Cinema Road" },
+  { city: "Nirmal", note: "Studio · Narayan Reddy Market" },
+  { city: "Nizamabad", note: "Studio · Beside Bus Stand" },
+];
+
+/**
+ * Enquiry form.
+ *
+ * Submissions are delivered to sanjayuttoor07@gmail.com via a `mailto:` draft —
+ * this keeps the site fully static (Cloudflare Pages friendly) and avoids any
+ * server dependency. When a backend is added (Lovable Cloud / Formspree / etc.)
+ * swap the `mailto:` handler for a `fetch` POST without touching the markup.
+ */
+const TO_EMAIL = "sanjayuttoor07@gmail.com";
 
 export function Contact() {
   const [sent, setSent] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const f = e.currentTarget;
+    const data = new FormData(f);
+    const get = (k: string) => String(data.get(k) ?? "").trim();
+
+    const subject = `New Enquiry — ${get("service") || "Photography"} — ${get("name")}`;
+    const body =
+      `Name: ${get("name")}\n` +
+      `Phone: ${get("phone")}\n` +
+      `Email: ${get("email")}\n` +
+      `Event Date: ${get("date")}\n` +
+      `Event Location: ${get("location")}\n` +
+      `Service Required: ${get("service")}\n\n` +
+      `Message:\n${get("message")}\n`;
+
+    window.location.href =
+      `mailto:${TO_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
     setSent(true);
-    setTimeout(() => setSent(false), 4000);
+    f.reset();
+    setTimeout(() => setSent(false), 6000);
   };
 
   return (
@@ -27,30 +76,28 @@ export function Contact() {
           <Reveal>
             <form onSubmit={onSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-6">
-                <input required maxLength={100} placeholder="Your Name" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
-                <input required type="tel" maxLength={20} placeholder="Phone Number" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
+                <input name="name" required maxLength={100} placeholder="Your Name" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
+                <input name="phone" required type="tel" maxLength={20} placeholder="Phone Number" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
               </div>
-              <input type="email" maxLength={255} placeholder="Email" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
+              <input name="email" required type="email" maxLength={255} placeholder="Email" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
               <div className="grid sm:grid-cols-2 gap-6">
-                <input type="date" placeholder="Event Date" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors text-muted-foreground" />
-                <input maxLength={120} placeholder="Event Location" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
+                <input name="date" type="date" placeholder="Event Date" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors text-muted-foreground" />
+                <input name="location" maxLength={120} placeholder="Event Location" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors" />
               </div>
-              <select defaultValue="" className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors text-muted-foreground">
+              <select name="service" defaultValue="" required className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors text-muted-foreground">
                 <option value="" disabled>Service Required</option>
-                <option>Wedding Photography</option>
-                <option>Wedding Cinematography</option>
-                <option>Pre-Wedding Shoot</option>
-                <option>Portrait Photography</option>
-                <option>Album Design</option>
-                <option>Maternity Shoot</option>
-                <option>Baby Shoot</option>
-                <option>Birthday Event</option>
-                <option>Corporate Event</option>
+                {SERVICES.map((s) => <option key={s}>{s}</option>)}
               </select>
-              <textarea required maxLength={1000} placeholder="Tell us about your event..." rows={5} className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors resize-none" />
+              <textarea name="message" required maxLength={1000} placeholder="Tell us about your event..." rows={5} className="bg-card border border-border focus:border-gold rounded-sm px-5 py-4 w-full outline-none transition-colors resize-none" />
               <button type="submit" className="btn-gold btn-gold-hover px-8 py-4 rounded-full inline-flex items-center gap-2 text-sm">
-                {sent ? "Thank you — we'll reach out shortly" : <>Send Enquiry <ArrowRight className="w-4 h-4" /></>}
+                {sent ? "Thank you — your enquiry has been prepared. Please send the email to confirm." : <>Send Enquiry <ArrowRight className="w-4 h-4" /></>}
               </button>
+              {sent && (
+                <p className="text-xs text-muted-foreground">
+                  Your default mail app should open with the details. If it didn't, write to{" "}
+                  <a href={`mailto:${TO_EMAIL}`} className="text-gold hover:underline">{TO_EMAIL}</a>.
+                </p>
+              )}
             </form>
           </Reveal>
 
@@ -67,16 +114,10 @@ export function Contact() {
                     <MessageCircle className="w-5 h-5 text-gold shrink-0 mt-0.5" />
                     <span>Chat on WhatsApp</span>
                   </a>
-                  <a href="mailto:sanjayuttoor07@gmail.com" className="flex gap-4 hover:text-gold transition-colors">
+                  <a href={`mailto:${TO_EMAIL}`} className="flex gap-4 hover:text-gold transition-colors">
                     <Mail className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                    <span>sanjayuttoor07@gmail.com</span>
+                    <span>{TO_EMAIL}</span>
                   </a>
-                  <div className="flex gap-4">
-                    <MapPin className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                    <div className="text-muted-foreground">
-                      Studios in Hyderabad, Adilabad,<br />Nirmal & Nizamabad — Telangana
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-8 pt-6 border-t border-border">
@@ -89,13 +130,24 @@ export function Contact() {
                 </div>
               </div>
 
-              <div className="rounded-sm overflow-hidden border border-border h-72">
-                <iframe
-                  title="Hanuman Digitals — Hyderabad"
-                  src="https://www.google.com/maps?q=Chikkadapally,Hyderabad&output=embed"
-                  className="w-full h-full grayscale contrast-125"
-                  loading="lazy"
-                />
+              <div>
+                <div className="text-[11px] tracking-[0.3em] uppercase text-gold mb-4">Service Locations</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {SERVICE_CITIES.map((l) => (
+                    <div
+                      key={l.city}
+                      className="p-5 border border-border rounded-sm bg-card/40 hover:border-gold/50 hover:bg-card transition-all duration-500"
+                    >
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-4 h-4 text-gold shrink-0 mt-1" />
+                        <div>
+                          <div className="font-serif text-lg">{l.city}</div>
+                          <div className="text-[11px] text-muted-foreground mt-1">{l.note}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </Reveal>
