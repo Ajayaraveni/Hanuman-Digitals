@@ -3,15 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Reveal, SectionLabel } from "./Reveal";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 
+/**
+ * PLACEHOLDER CONTENT — pending real client testimonials.
+ * Replace each entry below with verified reviews supplied by Hanuman Digitals.
+ * Shape: { n: "Client name", l: "City", t: "Testimonial text" }
+ */
 const reviews = [
-  { n: "Priya & Ramesh", l: "Hyderabad", t: "Hanuman Digitals turned our wedding into a film we relive every anniversary. Every frame is poetry." },
-  { n: "Sneha Reddy", l: "Nizamabad", t: "Three generations of my family have trusted them. The album they crafted is a true heirloom." },
-  { n: "Arjun & Meera", l: "Nirmal", t: "The cinematic pre-wedding film blew us away. World-class quality with the warmth of a local family." },
-  { n: "Kavya & Rohit", l: "Adilabad", t: "From haldi to reception — every emotion captured. The team is professional, calm and incredibly talented." },
-  { n: "Anjali Sharma", l: "Hyderabad", t: "Our baby's first-year shoot was magical. So much patience and creativity in every frame." },
-  { n: "Vikram & Pooja", l: "Hyderabad", t: "Premium quality, premium service. Hanuman Digitals exceeded every expectation we had." },
-  { n: "Lakshmi Devi", l: "Nirmal", t: "Their portrait work is unmatched. Studio lighting, posing, edits — everything felt curated." },
-  { n: "Sai & Divya", l: "Nizamabad", t: "Booked them for the engagement — booked them again for the wedding. That should say it all." },
+  { n: "Client Name", l: "Hyderabad", t: "[Placeholder testimonial — to be replaced with a real client review provided by Hanuman Digitals.]" },
+  { n: "Client Name", l: "Nizamabad", t: "[Placeholder testimonial — to be replaced with a real client review provided by Hanuman Digitals.]" },
+  { n: "Client Name", l: "Nirmal", t: "[Placeholder testimonial — to be replaced with a real client review provided by Hanuman Digitals.]" },
+  { n: "Client Name", l: "Adilabad", t: "[Placeholder testimonial — to be replaced with a real client review provided by Hanuman Digitals.]" },
 ];
 
 function useVisibleCount() {
