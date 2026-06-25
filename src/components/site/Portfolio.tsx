@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { Reveal, SectionLabel } from "./Reveal";
-import { supabase } from "@/integrations/supabase/client";
 
 type Category = { id: string; name: string };
 type DriveImage = { id: string; name: string; thumb: string; url: string };
