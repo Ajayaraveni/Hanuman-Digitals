@@ -38,12 +38,6 @@ export function Portfolio() {
   useEffect(() => {
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("drive-portfolio", {
-          body: null,
-          method: "GET",
-          // @ts-expect-error - supabase-js allows query via headers/params workaround
-        });
-        // Fallback: use fetch directly so we can pass query string
         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-portfolio?action=categories`;
         const res = await fetch(url, {
           headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
@@ -53,7 +47,6 @@ export function Portfolio() {
         const sorted = sortCategories(json.categories ?? []);
         setCategories(sorted);
         if (sorted[0]) setActive(sorted[0]);
-        void data; void error;
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load portfolio");
       }
