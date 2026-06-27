@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import whatsappIcon from "@/assets/whatsapp-icon.png.asset.json";
+import whatsappIcon from "@/assets/whatsapp-icon.png";
 
 /**
  * Floating WhatsApp button — fixed to the bottom-right corner on every viewport.
@@ -30,7 +30,7 @@ export function WhatsAppFloat() {
     >
       <span className="absolute inset-[10%] rounded-full bg-[#25D366] opacity-40 animate-ping" />
       <img
-        src={whatsappIcon.url}
+        src={whatsappIcon}
         alt=""
         width={64}
         height={64}
