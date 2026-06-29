@@ -1,35 +1,63 @@
+import { useEffect, useState } from "react";
 import { Reveal, SectionLabel } from "./Reveal";
 import { Play, Youtube } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
-/**
- * Featured Cinematic Films — sourced from the Hanuman Digitals YouTube channel:
- *   https://www.youtube.com/@hanumandigitals1
- *
- * AUTOMATIC INTEGRATION (not yet wired):
- * To auto-fetch the latest uploads, the YouTube Data API v3 is required:
- *   1. Create a Google Cloud project and enable "YouTube Data API v3".
- *   2. Generate an API key restricted to the production domain.
- *   3. Resolve the channel ID from the @hanumandigitals1 handle via:
- *        GET https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=hanumandigitals1&key=API_KEY
- *      then read `items[0].contentDetails.relatedPlaylists.uploads` for the
- *      uploads playlist ID.
- *   4. Fetch the latest videos via:
- *        GET https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=6&playlistId=UPLOADS_ID&key=API_KEY
- *      and map each `items[].snippet` into the `Film` shape below.
- *
- * Until the API key is available, populate `films` manually with real video IDs
- * from the channel. The component renders an empty-state CTA when the list is
- * empty, so the section degrades gracefully.
- */
-type Film = { id: string; title: string };
+type Film = {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  publishedAt: string;
+};
 
 const CHANNEL_URL = "https://www.youtube.com/@hanumandigitals1";
 
-// TODO: Replace with real Hanuman Digitals YouTube video IDs (or wire up the
-// YouTube Data API as documented above). Each entry must be the `?v=` ID.
-const films: Film[] = [];
+function formatDate(iso: string): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export function Films() {
+  const [films, setFilms] = useState<Film[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [active, setActive] = useState<Film | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("youtube-films");
+        if (cancelled) return;
+        if (error) {
+          setFailed(true);
+        } else {
+          const list: Film[] = data?.films ?? [];
+          setFilms(list);
+          if (!list.length && data?.error) setFailed(true);
+        }
+      } catch {
+        if (!cancelled) setFailed(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section id="films" className="py-28 md:py-40 px-6 bg-card/40">
       <div className="max-w-7xl mx-auto">
@@ -47,19 +75,30 @@ export function Films() {
           </Reveal>
         </div>
 
-        {films.length > 0 ? (
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-sm overflow-hidden border border-border bg-background">
+                <Skeleton className="aspect-video w-full" />
+                <div className="p-5 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : films.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {films.map((f, i) => (
-              <Reveal key={`${f.id}-${i}`} delay={i * 0.06}>
-                <a
-                  href={`https://www.youtube.com/watch?v=${f.id}`}
-                  target="_blank"
-                  rel="noopener"
-                  className="group block rounded-sm overflow-hidden border border-border hover:border-gold/50 transition-all duration-500 bg-background"
+              <Reveal key={f.id} delay={i * 0.06}>
+                <button
+                  type="button"
+                  onClick={() => setActive(f)}
+                  className="group block w-full text-left rounded-sm overflow-hidden border border-border hover:border-gold/50 transition-all duration-500 bg-background"
                 >
                   <div className="relative aspect-video overflow-hidden bg-black">
                     <img
-                      src={`https://i.ytimg.com/vi/${f.id}/hqdefault.jpg`}
+                      src={f.thumbnail}
                       alt={f.title}
                       loading="lazy"
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
@@ -71,11 +110,16 @@ export function Films() {
                     </div>
                   </div>
                   <div className="p-5">
-                    <h3 className="font-serif text-lg group-hover:text-gold transition-colors">
+                    <h3 className="font-serif text-lg group-hover:text-gold transition-colors line-clamp-2">
                       {f.title}
                     </h3>
+                    {f.publishedAt && (
+                      <p className="mt-2 text-xs uppercase tracking-widest text-muted-foreground">
+                        {formatDate(f.publishedAt)}
+                      </p>
+                    )}
                   </div>
-                </a>
+                </button>
               </Reveal>
             ))}
           </div>
@@ -86,12 +130,12 @@ export function Films() {
                 <Youtube className="w-7 h-7 text-gold" strokeWidth={1.2} />
               </div>
               <h3 className="font-serif text-2xl md:text-3xl mb-4">
-                Our latest films live on YouTube
+                {failed ? "Videos are temporarily unavailable" : "Our latest films live on YouTube"}
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Real wedding films from the Hanuman Digitals channel will appear here once the
-                YouTube integration is connected. In the meantime, browse the full library on
-                our official channel.
+                {failed
+                  ? "Please visit our YouTube channel to view our latest cinematic films."
+                  : "New films from the Hanuman Digitals channel will appear here soon."}
               </p>
             </div>
           </Reveal>
@@ -110,6 +154,22 @@ export function Films() {
           </div>
         </Reveal>
       </div>
+
+      <Dialog open={!!active} onOpenChange={(open) => !open && setActive(null)}>
+        <DialogContent className="max-w-4xl p-0 border-gold/30 bg-background overflow-hidden">
+          {active && (
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${active.id}?autoplay=1&rel=0`}
+                title={active.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
