@@ -1,7 +1,14 @@
 import { Reveal, SectionLabel } from "./Reveal";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 
-const locations = [
+const locations: Array<{
+  city: string;
+  name: string;
+  address: string;
+  phone: string;
+  tel: string;
+  email?: string;
+}> = [
   {
     city: "Hyderabad",
     name: "Hanuman Digitals",
@@ -32,6 +39,15 @@ const locations = [
     phone: "+91 98665 32302",
     tel: "+919866532302",
   },
+  {
+    city: "Princeton, Texas, USA",
+    name: "Sowmya's Photography",
+    address: "Princeton, Texas, USA",
+    phone: "+1 (678) 491-4316",
+    tel: "+16784914316",
+    email: "soumyasphotographyusa@gmail.com",
+  },
+
 ];
 
 export function Locations() {
@@ -47,7 +63,7 @@ export function Locations() {
           </Reveal>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {locations.map((l, i) => (
             <Reveal key={l.city} delay={i * 0.08}>
               <div className="p-8 border border-border rounded-sm bg-card/40 h-full hover:border-gold/50 hover:bg-card transition-all duration-500 group relative overflow-hidden">
@@ -62,15 +78,25 @@ export function Locations() {
                 </div>
                 <a
                   href={`tel:${l.tel}`}
-                  className="flex gap-3 text-sm hover:text-gold transition-colors"
+                  className="flex gap-3 text-sm hover:text-gold transition-colors mb-2"
                 >
                   <Phone className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                   <span>{l.phone}</span>
                 </a>
+                {l.email && (
+                  <a
+                    href={`mailto:${l.email}`}
+                    className="flex gap-3 text-sm hover:text-gold transition-colors break-all"
+                  >
+                    <Mail className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                    <span>{l.email}</span>
+                  </a>
+                )}
               </div>
             </Reveal>
           ))}
         </div>
+
       </div>
     </section>
   );
