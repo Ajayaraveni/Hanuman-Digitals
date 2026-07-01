@@ -1,7 +1,14 @@
 import { Reveal, SectionLabel } from "./Reveal";
 import { MapPin, Phone, Mail } from "lucide-react";
 
-const locations = [
+const locations: Array<{
+  city: string;
+  name: string;
+  address: string;
+  phone: string;
+  tel: string;
+  email?: string;
+}> = [
   {
     city: "Hyderabad",
     name: "Hanuman Digitals",
