@@ -1,5 +1,5 @@
 import { Reveal, SectionLabel } from "./Reveal";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 const locations = [
   {
@@ -32,6 +32,15 @@ const locations = [
     phone: "+91 98665 32302",
     tel: "+919866532302",
   },
+  {
+    city: "Princeton, Texas, USA",
+    name: "Sowmya's Photography",
+    address: "Princeton, Texas, USA",
+    phone: "+1 (678) 491-4316",
+    tel: "+16784914316",
+    email: "soumyasphotographyusa@gmail.com",
+  },
+
 ];
 
 export function Locations() {
