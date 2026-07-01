@@ -79,7 +79,7 @@ export function Testimonials() {
           <div className="relative">
             <div
               className={`grid gap-8 ${
-                visible === 3 ? "md:grid-cols-3" : visible === 2 ? "grid-cols-2" : "grid-cols-1"
+                visible === 2 ? "md:grid-cols-2" : "grid-cols-1"
               }`}
             >
               <AnimatePresence mode="popLayout">
