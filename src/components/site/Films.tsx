@@ -43,7 +43,7 @@ export function Films() {
         if (error) {
           setFailed(true);
         } else {
-          const list: Film[] = data?.films ?? [];
+          const list: Film[] = (data?.films ?? []).slice(0, 6);
           setFilms(list);
           if (!list.length && data?.error) setFailed(true);
         }

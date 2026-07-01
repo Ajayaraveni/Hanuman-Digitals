@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Reveal, SectionLabel } from "./Reveal";
 
 type Category = { id: string; name: string };
@@ -32,7 +32,7 @@ export function Portfolio() {
   const [imagesByCat, setImagesByCat] = useState<Record<string, DriveImage[]>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   // Load categories once
   useEffect(() => {
@@ -76,6 +76,28 @@ export function Portfolio() {
   }, [active, imagesByCat]);
 
   const images = active ? imagesByCat[active.id] ?? [] : [];
+  const visibleImages = images.slice(0, 8);
+
+  const closeLightbox = useCallback(() => setLightboxIdx(null), []);
+  const nextImage = useCallback(
+    () => setLightboxIdx((i) => (i === null ? i : (i + 1) % images.length)),
+    [images.length],
+  );
+  const prevImage = useCallback(
+    () => setLightboxIdx((i) => (i === null ? i : (i - 1 + images.length) % images.length)),
+    [images.length],
+  );
+
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowRight") nextImage();
+      else if (e.key === "ArrowLeft") prevImage();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIdx, closeLightbox, nextImage, prevImage]);
 
   return (
     <section id="portfolio" className="py-28 md:py-40 px-6">
@@ -129,17 +151,17 @@ export function Portfolio() {
           </div>
         )}
 
-        {!loading && images.length > 0 && (
+        {!loading && visibleImages.length > 0 && (
           <motion.div
             layout
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[220px] md:auto-rows-[260px] gap-4"
           >
             <AnimatePresence mode="popLayout">
-              {images.map((img, idx) => (
+              {visibleImages.map((img, idx) => (
                 <motion.button
                   layout
                   key={img.id}
-                  onClick={() => setLightbox(img.url)}
+                  onClick={() => setLightboxIdx(idx)}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -167,30 +189,56 @@ export function Portfolio() {
       </div>
 
       <AnimatePresence>
-        {lightbox && (
+        {lightboxIdx !== null && images[lightboxIdx] && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-background/95 backdrop-blur-md z-[100] flex items-center justify-center p-6"
-            onClick={() => setLightbox(null)}
+            onClick={closeLightbox}
           >
             <button
-              className="absolute top-6 right-6 text-foreground p-3"
-              onClick={() => setLightbox(null)}
+              className="absolute top-6 right-6 text-foreground p-3 hover:text-gold transition-colors"
+              onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
               aria-label="Close"
             >
               <X />
             </button>
+            <button
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-foreground p-3 rounded-full bg-background/40 backdrop-blur border border-border hover:border-gold hover:text-gold transition-colors z-10"
+              onClick={(e) => { e.stopPropagation(); prevImage(); }}
+              aria-label="Previous"
+            >
+              <ChevronLeft />
+            </button>
+            <button
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-foreground p-3 rounded-full bg-background/40 backdrop-blur border border-border hover:border-gold hover:text-gold transition-colors z-10"
+              onClick={(e) => { e.stopPropagation(); nextImage(); }}
+              aria-label="Next"
+            >
+              <ChevronRight />
+            </button>
             <motion.img
-              initial={{ scale: 0.9, opacity: 0 }}
+              key={images[lightboxIdx].id}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              src={lightbox}
-              alt="Portfolio detail"
+              exit={{ scale: 0.95, opacity: 0 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -80) nextImage();
+                else if (info.offset.x > 80) prevImage();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              src={images[lightboxIdx].url}
+              alt={images[lightboxIdx].name}
               referrerPolicy="no-referrer"
-              className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm"
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm cursor-grab active:cursor-grabbing"
             />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs tracking-[0.25em] uppercase text-muted-foreground">
+              {lightboxIdx + 1} / {images.length}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
